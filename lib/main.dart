@@ -50,7 +50,8 @@ class _MyHomePageState extends State<MyHomePage> {
           mainAxisAlignment: MainAxisAlignment.center,
           children: <Widget>[
             Text('Press Start to start generating events'),
-            if (_latest != null) Text('latest: $_latest'),
+            if (_latest != null)
+              Text('latest: $_latest'),
             RaisedButton(
               child: Text('Start generating errors in Plugin'),
               onPressed: () {
@@ -66,7 +67,7 @@ class _MyHomePageState extends State<MyHomePage> {
               },
             ),
             RaisedButton(
-              child: Text('Start generating errors in Locally'),
+              child: Text('Start generating errors locally'),
               onPressed: () {
                 if (_subscription == null) {
                   _subscription = EventChannel('app/events')
@@ -75,6 +76,28 @@ class _MyHomePageState extends State<MyHomePage> {
                         'maximum': maximum,
                       })
                       .map<Map<dynamic, dynamic>>((event) => event)
+                      .listen((event) {
+                        setState(() {
+                          _latest = event;
+                        });
+                      });
+                }
+              },
+            ),
+            // This will not generate any spike in memory usage.
+            RaisedButton(
+              child: Text('Start listening without errors'),
+              onPressed: () {
+                if (_subscription == null) {
+                  _subscription = EventChannel('app/events')
+                      .receiveBroadcastStream({
+                        'type': 'regular',
+                        'maximum': maximum,
+                      })
+                      .map<Map<dynamic, dynamic>>((event) => event)
+                      .map((event) =>
+                          Map.castFrom<dynamic, dynamic, String, dynamic>(
+                              event))
                       .listen((event) {
                         setState(() {
                           _latest = event;
